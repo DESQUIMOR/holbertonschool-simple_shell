@@ -1,42 +1,35 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/wait.h>
-
-#define BUFFER_SIZE 1024
+#include "shell.h"
 
 int main(void)
 {
-    char buffer[BUFFER_SIZE];
-    pid_t pid;
-    int status;
+    char *buffer = NULL;
+    size_t bufsize = 0;
 
     while (1)
     {
         printf("$ ");
-        fflush(stdout);
-
-        if (!fgets(buffer, BUFFER_SIZE, stdin))
+        if (getline(&buffer, &bufsize, stdin) == -1)
             break;
 
-        pid = fork();
-
-        if (pid < 0)
+        if (fork() == 0)
         {
-            perror("Fork error");
-            exit(EXIT_FAILURE);
-        }
-        else if (pid == 0)
-        {
-            char *args[] = { "/bin/sh", "-c", buffer, NULL };
+            /* child process */
+            char **args = malloc(3 * sizeof(char *));
+            args[0] = "/bin/sh";
+            args[1] = "-c";
+            args[2] = buffer;
+            args[3] = NULL;
             execve(args[0], args, NULL);
+            perror("execve failed");
             exit(EXIT_FAILURE);
         }
         else
         {
-            waitpid(pid, &status, 0);
+            /* parent process */
+            wait(NULL);
         }
     }
 
-    return 0;
+    free(buffer);
+    return EXIT_SUCCESS;
 }
