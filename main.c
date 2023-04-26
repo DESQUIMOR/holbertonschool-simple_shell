@@ -10,6 +10,7 @@ int main()
 {
     char command[MAX_COMMAND_LENGTH];
     int status = 1;
+    pid_t pid;
 
     while(status)
     {
@@ -19,14 +20,15 @@ int main()
         // Remove the trailing newline character
         strtok(command, "\n");
 
-        pid_t pid = fork();
+        pid = fork();
 
         if (pid < 0)
         {
             perror("fork");
             exit(EXIT_FAILURE);
         }
-        else if (pid == 0)
+
+        if (pid == 0)
         {
             char *args[] = {command, NULL};
             if (execve(args[0], args, NULL) == -1)
@@ -35,10 +37,8 @@ int main()
                 exit(EXIT_FAILURE);
             }
         }
-        else
-        {
-            wait(&status);
-        }
+
+        wait(&status);
     }
 
     return EXIT_SUCCESS;
