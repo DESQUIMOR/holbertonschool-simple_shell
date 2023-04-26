@@ -5,34 +5,31 @@
 
 int main(void)
 {
-    pid_t pid;
-    int status;
+        char *buffer;
+        size_t bufsize = 0;
+        pid_t pid;
 
-    printf("$ ");
-    pid = fork();
-    if (pid == -1)
-    {
-        perror("fork");
-        exit(EXIT_FAILURE);
-    }
-    else if (pid == 0)
-    {
-        /* Este es el proceso hijo */
-        char *argv[] = {"/bin/ls", NULL};
-        if (execve(argv[0], argv, NULL) == -1)
+        while (1)
         {
-            perror("execve");
-            exit(EXIT_FAILURE);
+                printf("$ ");
+                if (getline(&buffer, &bufsize, stdin) == -1)
+                        break;
+                pid = fork();
+                if (pid == -1)
+                {
+                        perror("Error");
+                        exit(EXIT_FAILURE);
+                }
+                else if (pid == 0)
+                {
+                        execve(buffer, NULL, environ);
+                        perror("Error");
+                        exit(EXIT_FAILURE);
+                }
+                else
+                        wait(NULL);
         }
-    }
-    else
-    {
-        /* Este es el proceso padre */
-        waitpid(pid, &status, 0);
-        if (WIFEXITED(status))
-        {
-            printf("Program exited with status %d\n", WEXITSTATUS(status));
-        }
-    }
-    return EXIT_SUCCESS;
+
+        free(buffer);
+        exit(EXIT_SUCCESS);
 }
