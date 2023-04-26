@@ -5,19 +5,19 @@
 
 int main(void)
 {
-    char *command;
+    char *command = NULL;
     size_t bufsize = 0;
-    pid_t pid;
+    ssize_t characters_read;
 
     while (1) {
         printf("$ ");
-        getline(&command, &bufsize, stdin);
+        characters_read = getline(&command, &bufsize, stdin);
 
-        if (feof(stdin)) {
+        if (characters_read == -1) {
             break;
         }
 
-        pid = fork();
+        pid_t pid = fork();
         if (pid == -1) {
             perror("fork");
             exit(EXIT_FAILURE);
