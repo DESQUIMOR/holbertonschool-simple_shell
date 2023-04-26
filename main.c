@@ -1,35 +1,34 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <string.h>
 #include <sys/wait.h>
 
 int main(void)
 {
-        char *buffer;
-        size_t bufsize = 0;
-        pid_t pid;
+    char *args[] = {"/bin/ls", "-l", "/usr/", NULL};
+    char buffer[100];
 
-        while (1)
+    pid_t pid = fork();
+
+    if (pid == 0)
+    {
+        if (execve(args[0], args, NULL) == -1)
         {
-                printf("$ ");
-                if (getline(&buffer, &bufsize, stdin) == -1)
-                        break;
-                pid = fork();
-                if (pid == -1)
-                {
-                        perror("Error");
-                        exit(EXIT_FAILURE);
-                }
-                else if (pid == 0)
-                {
-                        execve(buffer, NULL, environ);
-                        perror("Error");
-                        exit(EXIT_FAILURE);
-                }
-                else
-                        wait(NULL);
+            perror("Error executing command");
+            exit(EXIT_FAILURE);
         }
+    }
+    else if (pid > 0)
+    {
+        wait(NULL);
+        printf("Child exited\n");
+    }
+    else
+    {
+        perror("Fork failed");
+        exit(EXIT_FAILURE);
+    }
 
-        free(buffer);
-        exit(EXIT_SUCCESS);
+    return 0;
 }
