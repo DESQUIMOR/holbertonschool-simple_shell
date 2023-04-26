@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 int main(void)
 {
     char *command;
     size_t bufsize = 0;
+    pid_t pid;
 
     while (1) {
         printf("$ ");
@@ -15,7 +17,7 @@ int main(void)
             break;
         }
 
-        pid_t pid = fork();
+        pid = fork();
         if (pid == -1) {
             perror("fork");
             exit(EXIT_FAILURE);
