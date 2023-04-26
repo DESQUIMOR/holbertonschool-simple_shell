@@ -17,7 +17,7 @@ int main()
         printf("Simple_Shell$ ");
         fgets(command, MAX_COMMAND_LENGTH, stdin);
 
-        // Remove the trailing newline character
+        /* Remove the trailing newline character */
         strtok(command, "\n");
 
         pid = fork();
