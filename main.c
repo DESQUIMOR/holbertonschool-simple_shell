@@ -1,46 +1,38 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
 
-#define MAX_COMMAND_LENGTH 100
-
-int main()
+int main(void)
 {
-    char command[MAX_COMMAND_LENGTH];
-    int status = 1;
     pid_t pid;
+    int status;
 
-    while(status)
+    printf("$ ");
+    pid = fork();
+    if (pid == -1)
     {
-        printf("Simple_Shell$ ");
-        fgets(command, MAX_COMMAND_LENGTH, stdin);
-
-        /* Remove the trailing newline character */
-        strtok(command, "\n");
-
-        pid = fork();
-
-        if (pid < 0)
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+    else if (pid == 0)
+    {
+        /* Este es el proceso hijo */
+        char *argv[] = {"/bin/ls", NULL};
+        if (execve(argv[0], argv, NULL) == -1)
         {
-            perror("fork");
+            perror("execve");
             exit(EXIT_FAILURE);
         }
-
-        if (pid == 0)
-        {
-            // Initialize the args array with the command
-            char *args[] = {command, NULL};
-            if (execve(args[0], args, NULL) == -1)
-            {
-                perror("execve");
-                exit(EXIT_FAILURE);
-            }
-        }
-
-        wait(&status);
     }
-
+    else
+    {
+        /* Este es el proceso padre */
+        waitpid(pid, &status, 0);
+        if (WIFEXITED(status))
+        {
+            printf("Program exited with status %d\n", WEXITSTATUS(status));
+        }
+    }
     return EXIT_SUCCESS;
 }
