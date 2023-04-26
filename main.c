@@ -1,35 +1,42 @@
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+#define BUFFER_SIZE 1024
 
 int main(void)
 {
+    char buffer[BUFFER_SIZE];
     pid_t pid;
+    int status;
 
-    printf("Antes del fork\n");
-
-    pid = fork();
-
-    if (pid == -1)
+    while (1)
     {
-        perror("Error al crear el proceso hijo\n");
-        return (1);
+        printf("$ ");
+        fflush(stdout);
+
+        if (!fgets(buffer, BUFFER_SIZE, stdin))
+            break;
+
+        pid = fork();
+
+        if (pid < 0)
+        {
+            perror("Fork error");
+            exit(EXIT_FAILURE);
+        }
+        else if (pid == 0)
+        {
+            char *args[] = { "/bin/sh", "-c", buffer, NULL };
+            execve(args[0], args, NULL);
+            exit(EXIT_FAILURE);
+        }
+        else
+        {
+            waitpid(pid, &status, 0);
+        }
     }
-    else if (pid == 0)
-    {
-        char *argv[] = {"/bin/ls", NULL};
 
-        printf("Proceso hijo: PID=%d\n", getpid());
-
-        execve(argv[0], argv, NULL);
-
-        perror("Error en execve\n");
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        printf("Proceso padre: PID=%d\n", getpid());
-    }
-
-    return (0);
+    return 0;
 }
