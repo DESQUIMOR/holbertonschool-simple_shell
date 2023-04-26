@@ -1,28 +1,35 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
-#include <sys/wait.h>
+#include <stdlib.h>
 
 int main(void)
 {
     pid_t pid;
 
+    printf("Antes del fork\n");
+
     pid = fork();
+
     if (pid == -1)
     {
-        perror("Error:");
-        exit(EXIT_FAILURE);
+        perror("Error al crear el proceso hijo\n");
+        return (1);
     }
-    if (pid == 0)
+    else if (pid == 0)
     {
-        execve("/bin/ls", NULL, NULL);
-        perror("Error:");
+        char *argv[] = {"/bin/ls", NULL};
+
+        printf("Proceso hijo: PID=%d\n", getpid());
+
+        execve(argv[0], argv, NULL);
+
+        perror("Error en execve\n");
         exit(EXIT_FAILURE);
     }
     else
     {
-        wait(NULL);
-        printf("Child exited\n");
+        printf("Proceso padre: PID=%d\n", getpid());
     }
-    return (EXIT_SUCCESS);
+
+    return (0);
 }
