@@ -30,6 +30,7 @@ int main()
 
         if (pid == 0)
         {
+            // Initialize the args array with the command
             char *args[] = {command, NULL};
             if (execve(args[0], args, NULL) == -1)
             {
